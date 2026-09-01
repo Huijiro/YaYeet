@@ -44,9 +44,7 @@ jobs:
           chmod +x linuxdeploy
 
       - name: Build AppImage
-        env:
-          PATH: ${{ github.workspace }}:${{ env.PATH }}
-        run: ./packaging/build-appimage.sh
+        run: PATH="${GITHUB_WORKSPACE}:$PATH" ./packaging/build-appimage.sh
 
       - name: Rename artifact
         run: mv dist/*.AppImage "dist/YaYeet-${GITHUB_REF_NAME}-x86_64.AppImage"

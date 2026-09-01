@@ -3,8 +3,8 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 
-	"github.com/huijiro/jirolauncher/internal/config"
-	"github.com/huijiro/jirolauncher/internal/runner"
+	"github.com/Huijiro/YaYeet/internal/config"
+	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
 func settingsPage(configuration *config.Configuration, runners []runner.Runner, window fyne.Window, onComplete func()) fyne.CanvasObject {

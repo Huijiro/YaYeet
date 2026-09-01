@@ -3,10 +3,10 @@ package main
 import (
 	"log/slog"
 
-	"github.com/huijiro/jirolauncher/internal/config"
-	"github.com/huijiro/jirolauncher/internal/logging"
-	"github.com/huijiro/jirolauncher/internal/runner"
-	"github.com/huijiro/jirolauncher/internal/ui"
+	"github.com/Huijiro/YaYeet/internal/config"
+	"github.com/Huijiro/YaYeet/internal/logging"
+	"github.com/Huijiro/YaYeet/internal/runner"
+	"github.com/Huijiro/YaYeet/internal/ui"
 )
 
 func main() {

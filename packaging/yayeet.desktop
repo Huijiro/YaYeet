@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Application
-Name=JiroLauncher
+Name=YaYeet
 Comment=Launcher for Voices of the Void
-Exec=jirolauncher
-Icon=jirolauncher
+Exec=yayeet
+Icon=yayeet
 Categories=Game;Utility;
 Terminal=false
 StartupNotify=true

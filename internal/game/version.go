@@ -137,7 +137,7 @@ func cacheJSON(name string, data []byte) {
 	if err != nil {
 		return
 	}
-	cacheDir = filepath.Join(cacheDir, "jirolauncher", "manifests")
+	cacheDir = filepath.Join(cacheDir, "yayeet", "manifests")
 	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		return
 	}

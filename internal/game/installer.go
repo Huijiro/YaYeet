@@ -86,7 +86,7 @@ func downloadIndex(ctx context.Context, indexURL string) (string, error) {
 		return "", fmt.Errorf("download install index: HTTP %s", response.Status)
 	}
 
-	file, err := os.CreateTemp("", "jirolauncher-*.caidx")
+	file, err := os.CreateTemp("", "yayeet-*.caidx")
 	if err != nil {
 		return "", err
 	}

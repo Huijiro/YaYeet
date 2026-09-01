@@ -9,14 +9,14 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/huijiro/jirolauncher/internal/config"
-	"github.com/huijiro/jirolauncher/internal/game"
-	"github.com/huijiro/jirolauncher/internal/runner"
+	"github.com/Huijiro/YaYeet/internal/config"
+	"github.com/Huijiro/YaYeet/internal/game"
+	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
 func Run(logger *slog.Logger, configuration *config.Configuration, runners []runner.Runner) {
-	launcher := app.NewWithID("io.github.huijiro.JiroLauncher")
-	window := launcher.NewWindow("JiroLauncher")
+	launcher := app.NewWithID("io.github.huijiro.YaYeet")
+	window := launcher.NewWindow("YaYeet")
 
 	configured, err := config.Exists()
 	if err != nil {

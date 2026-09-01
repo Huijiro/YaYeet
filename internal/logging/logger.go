@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const logDir = "jirolauncher"
+const logDir = "yayeet"
 
 type consoleHandler struct {
 	writer io.Writer
@@ -93,7 +93,7 @@ func New() (*slog.Logger, *os.File, error) {
 	}
 
 	logFile, err := os.OpenFile(
-		filepath.Join(stateDir, "jirolauncher.log"),
+		filepath.Join(stateDir, "yayeet.log"),
 		os.O_CREATE|os.O_APPEND|os.O_WRONLY,
 		0o644,
 	)

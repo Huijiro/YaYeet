@@ -1,8 +1,11 @@
-module github.com/huijiro/jirolauncher
+module github.com/Huijiro/YaYeet
 
 go 1.27.0
 
-require fyne.io/fyne/v2 v2.8.1
+require (
+	fyne.io/fyne/v2 v2.8.1
+	github.com/folbricht/desync v1.1.1
+)
 
 require (
 	cel.dev/expr v0.25.1 // indirect
@@ -30,7 +33,6 @@ require (
 	github.com/envoyproxy/go-control-plane/envoy v1.37.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.3.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/folbricht/desync v1.1.1 // indirect
 	github.com/folbricht/tempfile v0.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/fyne-io/gl-js v0.2.1-0.20260315212741-029c47fd27e8 // indirect

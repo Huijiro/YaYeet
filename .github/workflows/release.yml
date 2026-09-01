@@ -49,7 +49,7 @@ jobs:
         run: ./packaging/build-appimage.sh
 
       - name: Rename artifact
-        run: mv dist/*.AppImage "dist/JiroLauncher-${GITHUB_REF_NAME}-x86_64.AppImage"
+        run: mv dist/*.AppImage "dist/YaYeet-${GITHUB_REF_NAME}-x86_64.AppImage"
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

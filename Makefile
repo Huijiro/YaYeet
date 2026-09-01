@@ -1,7 +1,7 @@
 .PHONY: run build package
 
-BINARY := jirolauncher
-CMD := ./cmd/jirolauncher
+BINARY := yayeet
+CMD := ./cmd/yayeet
 
 run:
 	go run $(CMD)

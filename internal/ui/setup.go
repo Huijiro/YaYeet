@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/huijiro/jirolauncher/internal/config"
-	"github.com/huijiro/jirolauncher/internal/runner"
+	"github.com/Huijiro/YaYeet/internal/config"
+	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
 func setupPage(configuration *config.Configuration, runners []runner.Runner, window fyne.Window, actionLabel string, onComplete func()) fyne.CanvasObject {

@@ -1,4 +1,4 @@
-# JiroLauncher
+# YaYeet
 
 A Linux launcher for Voices of the Void, written in Go with Fyne.
 

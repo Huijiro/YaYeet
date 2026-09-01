@@ -10,12 +10,12 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/huijiro/jirolauncher/internal/files"
-	"github.com/huijiro/jirolauncher/internal/runner"
+	"github.com/Huijiro/YaYeet/internal/files"
+	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
 const (
-	configDir     = "jirolauncher"
+	configDir     = "yayeet"
 	configVersion = 1
 )
 

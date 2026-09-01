@@ -9,8 +9,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/huijiro/jirolauncher/internal/config"
-	"github.com/huijiro/jirolauncher/internal/game"
+	"github.com/Huijiro/YaYeet/internal/config"
+	"github.com/Huijiro/YaYeet/internal/game"
 )
 
 func homePage(logger *slog.Logger, configuration *config.Configuration, versions []game.VersionOption, latest string, openSettings func()) fyne.CanvasObject {
@@ -78,7 +78,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, versions
 	}
 
 	return container.NewCenter(container.NewVBox(
-		widget.NewLabel("JiroLauncher is ready."),
+		widget.NewLabel("YaYeet is ready."),
 		widget.NewLabel("Select a game version:"),
 		versionSelect,
 		progress,

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=JiroLauncher
+Comment=Launcher for Voices of the Void
+Exec=jirolauncher
+Icon=jirolauncher
+Categories=Game;Utility;
+Terminal=false
+StartupNotify=true

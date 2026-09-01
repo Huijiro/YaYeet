@@ -1,0 +1,37 @@
+# Go build output
+/jirolauncher
+/bin/
+/dist/
+
+# AppImage artifacts
+*.AppImage
+
+# Go coverage and profiling
+*.out
+coverage.html
+coverage.txt
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+
+# IDE settings
+.idea/
+.vscode/
+*.iml
+
+# Neovim and Vim swap files
+*.swp
+*.swo
+*.swn
+.Session.vim
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~

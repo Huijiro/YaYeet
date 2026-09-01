@@ -25,6 +25,9 @@ type Configuration struct {
 	DownloadPath     string `json:"download_path"`
 	WinePrefix       string `json:"wine_prefix"`
 	Runner           Runner `json:"runner"`
+	ShowUnstable     bool   `json:"show_unstable"`
+	ShowTest         bool   `json:"show_test"`
+	ShowRevisions    bool   `json:"show_revisions"`
 }
 
 type Runner struct {

@@ -1,16 +1,12 @@
 package ui
 
 import (
-	"context"
 	"log/slog"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
 
 	"github.com/Huijiro/YaYeet/internal/config"
-	"github.com/Huijiro/YaYeet/internal/game"
 	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
@@ -26,34 +22,25 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 
 	var showHome func()
 	showHome = func() {
-		versions, latest, err := game.AvailableVersions(context.Background())
-		if err != nil {
-			logger.Error("could not fetch game versions", slog.Any("error", err))
-			return
-		}
 		var home fyne.CanvasObject
-		home = homePage(logger, configuration, versions, latest, func() {
-			settings := settingsPage(configuration, runners, window, func() {
-				loading := container.NewCenter(widget.NewLabel("Loading game versions..."))
-				window.SetContent(loading)
-				window.Resize(loading.MinSize().Add(fyne.NewSize(48, 48)))
-				go showHome()
-			})
+		home = homePage(logger, configuration, func() {
+			settings := settingsPage(configuration, runners, window, showHome)
 			window.SetContent(settings)
 			window.Resize(settings.MinSize().Add(fyne.NewSize(48, 48)))
 		})
 		fyne.Do(func() {
 			window.SetContent(home)
-			window.Resize(home.MinSize().Add(fyne.NewSize(48, 48)))
+			window.Resize(fyne.NewSize(1280, 720))
 		})
 	}
 
 	var content fyne.CanvasObject
 	if configured {
-		content = container.NewCenter(widget.NewLabel("Loading game versions..."))
-		go showHome()
+		showHome()
+		window.ShowAndRun()
+		return
 	} else {
-		content = setupPage(configuration, runners, window, "Continue", func() { go showHome() })
+		content = setupPage(configuration, runners, window, "Continue", showHome)
 	}
 
 	window.SetContent(content)

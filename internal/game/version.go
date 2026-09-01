@@ -10,7 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -20,9 +22,12 @@ const (
 )
 
 type VersionOption struct {
-	Name  string
-	Label string
-	URL   string
+	Name              string
+	Label             string
+	RevisionlessLabel string
+	URL               string
+	Unstable          bool
+	Test              bool
 }
 
 type Status struct {
@@ -35,13 +40,14 @@ type Status struct {
 }
 
 type manifest struct {
-	FileHashMap    map[string]string `json:"FileHashMap"`
-	LowerHashMap   map[string]string `json:"fileHashMap"`
-	LatestStable   string            `json:"LatestStable"`
-	LatestUnstable string            `json:"LatestUnstable"`
-	Latest         string            `json:"latest"`
-	Patches        map[string]patch  `json:"Patches"`
-	LowerPatches   map[string]patch  `json:"patches"`
+	FileHashMap      map[string]string `json:"FileHashMap"`
+	LowerHashMap     map[string]string `json:"fileHashMap"`
+	LatestStable     string            `json:"LatestStable"`
+	LatestUnstable   string            `json:"LatestUnstable"`
+	UnstableVersions []string          `json:"UnstableVersions"`
+	Latest           string            `json:"latest"`
+	Patches          map[string]patch  `json:"Patches"`
+	LowerPatches     map[string]patch  `json:"patches"`
 }
 
 type patch struct {
@@ -66,23 +72,119 @@ func AvailableVersions(ctx context.Context) ([]VersionOption, string, error) {
 		return nil, "", err
 	}
 
+	unstableVersions := make(map[string]struct{}, len(currentManifest.UnstableVersions))
+	for _, version := range currentManifest.UnstableVersions {
+		unstableVersions[version] = struct{}{}
+	}
+
 	versions := make([]VersionOption, 0, len(catalog))
-	selected := currentManifest.LatestStable
+	selected := ""
 	for _, entry := range catalog {
 		if entry.Name == "" {
 			continue
 		}
-		label := entry.Name
-		if entry.Name == currentManifest.LatestStable {
-			label += " (latest) (stable)"
-			selected = label
-		} else if entry.Name == currentManifest.LatestUnstable {
-			label += " (latest) (unstable)"
+
+		versionName, catalogTag, tagged := strings.Cut(entry.Name, " [")
+		_, unstable := unstableVersions[versionName]
+		unstable = unstable || strings.HasPrefix(catalogTag, "UNSTABLE]")
+		test := strings.HasPrefix(catalogTag, "TEST]")
+		label := displayVersionName(versionName)
+		if versionName == currentManifest.LatestStable || versionName == currentManifest.LatestUnstable {
+			label += " (latest)"
 		}
-		versions = append(versions, VersionOption{Name: entry.Name, Label: label, URL: entry.Link})
+		if unstable {
+			label += " (unstable)"
+		} else if tagged {
+			label += " (" + strings.ToLower(strings.TrimSuffix(catalogTag, "]")) + ")"
+		} else {
+			label += " (stable)"
+		}
+		if versionName == currentManifest.LatestStable {
+			selected = label
+		}
+		revisionlessLabel := label
+		if base, _, ok := revisionParts(versionName); ok {
+			revisionlessLabel = base + strings.TrimPrefix(label, displayVersionName(versionName))
+		}
+		versions = append(versions, VersionOption{
+			Name:              versionName,
+			Label:             label,
+			RevisionlessLabel: revisionlessLabel,
+			URL:               entry.Link,
+			Unstable:          unstable,
+			Test:              test,
+		})
 	}
-	sort.Slice(versions, func(i, j int) bool { return versions[i].Label < versions[j].Label })
+	sort.Slice(versions, func(i, j int) bool { return versions[i].Label > versions[j].Label })
 	return versions, selected, nil
+}
+
+func LatestRevisions(versions []VersionOption) []VersionOption {
+	latestByBase := make(map[string][]int)
+	for _, version := range versions {
+		base, revision, ok := revisionParts(version.Name)
+		if !ok {
+			continue
+		}
+		if latest, exists := latestByBase[base]; !exists || newerRevision(revision, latest) {
+			latestByBase[base] = revision
+		}
+	}
+
+	filtered := make([]VersionOption, 0, len(versions))
+	for _, version := range versions {
+		base, revision, ok := revisionParts(version.Name)
+		if !ok || slices.Equal(revision, latestByBase[base]) {
+			filtered = append(filtered, version)
+		}
+	}
+	return filtered
+}
+
+func revisionParts(version string) (string, []int, bool) {
+	parts := strings.Split(version, "_")
+	if len(parts) < 2 || parts[0] == "" {
+		return "", nil, false
+	}
+
+	revision := make([]int, 0, len(parts)-1)
+	for _, part := range parts[1:] {
+		value, err := strconv.Atoi(part)
+		if err != nil {
+			return "", nil, false
+		}
+		revision = append(revision, value)
+	}
+	return parts[0], revision, true
+}
+
+func newerRevision(candidate, current []int) bool {
+	for index := 0; index < max(len(candidate), len(current)); index++ {
+		var candidatePart, currentPart int
+		if index < len(candidate) {
+			candidatePart = candidate[index]
+		}
+		if index < len(current) {
+			currentPart = current[index]
+		}
+		if candidatePart != currentPart {
+			return candidatePart > currentPart
+		}
+	}
+	return false
+}
+
+func displayVersionName(version string) string {
+	base, revision, ok := revisionParts(version)
+	if !ok {
+		return version
+	}
+
+	parts := make([]string, len(revision))
+	for index, value := range revision {
+		parts[index] = strconv.Itoa(value)
+	}
+	return base + "-" + strings.Join(parts, ".")
 }
 
 func Detect(ctx context.Context, installationPath string) (Status, error) {

@@ -70,15 +70,36 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		container.NewBorder(nil, nil, nil, prefixPicker, prefixPath),
 	)
 
+	showUnstable := widget.NewCheck("Show unstable", nil)
+	showUnstable.SetChecked(configuration.ShowUnstable)
+	showTest := widget.NewCheck("Show test", nil)
+	showTest.SetChecked(configuration.ShowTest)
+	showRevisions := widget.NewCheck("Show revisions", nil)
+	showRevisions.SetChecked(configuration.ShowRevisions)
+
 	status := widget.NewLabel("")
-	continueButton := widget.NewButton(actionLabel, func() {
+	var continueButton *widget.Button
+	continueButton = widget.NewButton(actionLabel, func() {
 		configuration.InstallationPath = installationPath.Text
 		configuration.WinePrefix = prefixPath.Text
-		if err := configuration.Save(); err != nil {
-			status.SetText("Could not save configuration: " + err.Error())
-			return
-		}
-		onComplete()
+		configuration.ShowUnstable = showUnstable.Checked
+		configuration.ShowTest = showTest.Checked
+		configuration.ShowRevisions = showRevisions.Checked
+		configurationToSave := *configuration
+		continueButton.Disable()
+		status.SetText("")
+
+		go func() {
+			err := configurationToSave.Save()
+			fyne.Do(func() {
+				if err != nil {
+					continueButton.Enable()
+					status.SetText("Could not save configuration: " + err.Error())
+					return
+				}
+				onComplete()
+			})
+		}()
 	})
 
 	content := container.NewVBox(
@@ -86,6 +107,10 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		installationRow,
 		prefixRow,
 		container.NewBorder(nil, nil, widget.NewLabel("Wine/Proton runner"), nil, runnerSelect),
+		widget.NewLabel("Version filters"),
+		showUnstable,
+		showTest,
+		showRevisions,
 		continueButton,
 		status,
 	)

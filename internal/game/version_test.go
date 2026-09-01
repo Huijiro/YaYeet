@@ -1,6 +1,9 @@
 package game
 
 import (
+	"context"
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 )
@@ -28,6 +31,21 @@ func TestLatestRevisionsKeepsHighestNumericRevision(t *testing.T) {
 	expected := []string{"0.6.0", "0.5.1_0010", "0.5.0_0002", "0.4.0_0015_1", "0.3.0_preview"}
 	if !slices.Equal(names, expected) {
 		t.Fatalf("LatestRevisions() = %v, want %v", names, expected)
+	}
+}
+
+func TestPakHash(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "game.pak")
+	if err := os.WriteFile(path, []byte("hello"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	hash, err := pakHash(context.Background(), path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if hash != "26C7827D889F6DA3" {
+		t.Fatalf("pakHash() = %q, want %q", hash, "26C7827D889F6DA3")
 	}
 }
 

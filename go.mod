@@ -4,6 +4,7 @@ go 1.27.0
 
 require (
 	fyne.io/fyne/v2 v2.8.1
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/folbricht/desync v1.1.1
 )
 
@@ -24,7 +25,6 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
 	github.com/anthonynsimon/bild v0.14.0 // indirect
 	github.com/boljen/go-bitmap v0.0.0-20151001105940-23cd2fb0ce7d // indirect
-	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20260202195803-dba9d589def2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

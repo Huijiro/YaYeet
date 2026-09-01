@@ -8,12 +8,13 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/cespare/xxhash/v2"
 )
 
 const (
@@ -223,15 +224,32 @@ func Detect(ctx context.Context, installationPath string) (Status, error) {
 }
 
 func pakHash(ctx context.Context, path string) (string, error) {
-	output, err := exec.CommandContext(ctx, "xxhsum", path).Output()
+	file, err := os.Open(path)
 	if err != nil {
-		return "", fmt.Errorf("hash pak: %w", err)
+		return "", fmt.Errorf("open pak for hashing: %w", err)
 	}
-	fields := strings.Fields(string(output))
-	if len(fields) == 0 {
-		return "", errors.New("xxhsum returned no hash")
+	defer file.Close()
+
+	hash := xxhash.New()
+	buffer := make([]byte, 128*1024)
+	for {
+		if err := ctx.Err(); err != nil {
+			return "", err
+		}
+		read, readErr := file.Read(buffer)
+		if read > 0 {
+			if _, err := hash.Write(buffer[:read]); err != nil {
+				return "", fmt.Errorf("hash pak: %w", err)
+			}
+		}
+		if errors.Is(readErr, io.EOF) {
+			break
+		}
+		if readErr != nil {
+			return "", fmt.Errorf("read pak for hashing: %w", readErr)
+		}
 	}
-	return strings.ToUpper(fields[0]), nil
+	return fmt.Sprintf("%016X", hash.Sum64()), nil
 }
 
 func cacheJSON(name string, data []byte) {

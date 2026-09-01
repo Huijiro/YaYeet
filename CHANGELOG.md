@@ -4,6 +4,13 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-01
+
+### Changed
+
+- Hash installed game archives with the native Go xxHash implementation instead of the external `xxhsum` command.
+- Expand the README with installation, configuration, development, and version-filter documentation.
+
 ## [1.1.0] - 2026-09-01
 
 ### Added
@@ -28,5 +35,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Initial Linux launcher for installing and running Voices of the Void through Wine or Proton.
 
+[1.2.0]: https://github.com/Huijiro/YaYeet/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Huijiro/YaYeet/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Huijiro/YaYeet/releases/tag/v1.0.0

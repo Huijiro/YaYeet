@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"log/slog"
+	"net/url"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -14,11 +15,35 @@ import (
 
 	"github.com/Huijiro/YaYeet/internal/config"
 	"github.com/Huijiro/YaYeet/internal/game"
+	patchnotes "github.com/Huijiro/YaYeet/patch-notes"
 )
 
 type thinProgressLayout struct{}
 
 type verticalFillLayout struct{}
+
+type patchNotesLayout struct{}
+
+func (patchNotesLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+	if len(objects) != 2 {
+		return
+	}
+	gap := theme.Size(theme.SizeNamePadding)
+	notesWidth := (size.Width - gap) / 3
+	objects[0].Move(fyne.NewPos(0, 0))
+	objects[0].Resize(fyne.NewSize(size.Width-notesWidth-gap, size.Height))
+	objects[1].Move(fyne.NewPos(size.Width-notesWidth, 0))
+	objects[1].Resize(fyne.NewSize(notesWidth, size.Height))
+}
+
+func (patchNotesLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
+	if len(objects) != 2 {
+		return fyne.NewSize(0, 0)
+	}
+	left := objects[0].MinSize()
+	right := objects[1].MinSize()
+	return fyne.NewSize(left.Width+right.Width+theme.Size(theme.SizeNamePadding), fyne.Max(left.Height, right.Height))
+}
 
 func (verticalFillLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 	if len(objects) == 0 {
@@ -53,6 +78,9 @@ func (thinProgressLayout) MinSize([]fyne.CanvasObject) fyne.Size {
 
 func homePage(logger *slog.Logger, configuration *config.Configuration, openSettings func()) fyne.CanvasObject {
 	byLabel := make(map[string]game.VersionOption)
+	patchNotes := widget.NewRichTextFromMarkdown("# Patch notes\n\nLoading...")
+	patchNotes.Wrapping = fyne.TextWrapWord
+	patchNotesScroll := container.NewVScroll(patchNotes)
 	versionSelect := widget.NewSelect(nil, nil)
 	versionSelect.Disable()
 	progress := widget.NewProgressBar()
@@ -83,7 +111,23 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 			install.SetText("Install selected version")
 		}
 	}
-	versionSelect.OnChanged = func(string) { updateAction() }
+	versionSelect.OnChanged = func(label string) {
+		updateAction()
+		selected, ok := byLabel[label]
+		if !ok {
+			return
+		}
+		notes, found := patchnotes.ForVersion(selected.Name)
+		if !found {
+			previousVersion, previousNotes, previousFound := patchnotes.PreviousForVersion(selected.Name)
+			notes = "# Patch notes\n\nNo patches for this version."
+			if previousFound {
+				notes += " Previous patch notes:\n\n## " + previousVersion + "\n\n" + previousNotes
+			}
+		}
+		patchNotes.ParseMarkdown(notes)
+		patchNotesScroll.ScrollToTop()
+	}
 
 	go func() {
 		detected, err := game.Detect(context.Background(), configuration.InstallationPath)
@@ -192,6 +236,18 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 	title.TextSize = theme.Size(theme.SizeNameHeadingText) * 2
 	title.TextStyle = fyne.TextStyle{Bold: true}
 	configurationButton := newOutlinedButton("Configuration", openSettings)
+	openSocial := func(destination *url.URL) func() {
+		return func() {
+			if err := fyne.CurrentApp().OpenURL(destination); err != nil {
+				logger.Error("could not open social link", slog.String("url", destination.String()), slog.Any("error", err))
+			}
+		}
+	}
+	socials := container.NewHBox(
+		newOutlinedButton("Discord", openSocial(&url.URL{Scheme: "https", Host: "discord.gg", Path: "/eternitydevgames"})),
+		newOutlinedButton("Patreon", openSocial(&url.URL{Scheme: "https", Host: "www.patreon.com", Path: "/eternitydev/"})),
+		newOutlinedButton("Boosty", openSocial(&url.URL{Scheme: "https", Host: "boosty.to", Path: "/mrdrnose"})),
+	)
 	bottom := container.NewGridWithColumns(
 		3,
 		container.NewVBox(
@@ -199,7 +255,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 			outlinedInput(versionSelect),
 			install,
 		),
-		layout.NewSpacer(),
+		container.NewCenter(socials),
 		container.NewHBox(
 			layout.NewSpacer(),
 			container.New(verticalFillLayout{}, openGameFolder, openCustomContentFolder),
@@ -207,5 +263,10 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 		),
 	)
 
-	return container.NewBorder(title, bottom, nil, nil, layout.NewSpacer())
+	mainContent := container.New(
+		patchNotesLayout{},
+		container.NewBorder(title, nil, nil, nil, layout.NewSpacer()),
+		patchNotesScroll,
+	)
+	return container.NewBorder(nil, bottom, nil, nil, mainContent)
 }

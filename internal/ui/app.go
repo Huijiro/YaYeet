@@ -12,6 +12,7 @@ import (
 
 func Run(logger *slog.Logger, configuration *config.Configuration, runners []runner.Runner) {
 	launcher := app.NewWithID("io.github.huijiro.YaYeet")
+	launcher.Settings().SetTheme(newLauncherTheme())
 	window := launcher.NewWindow("YaYeet")
 
 	configured, err := config.Exists()
@@ -23,11 +24,11 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 	var showHome func()
 	showHome = func() {
 		var home fyne.CanvasObject
-		home = homePage(logger, configuration, func() {
-			settings := settingsPage(configuration, runners, window, showHome)
+		home = withBackground(homePage(logger, configuration, func() {
+			settings := withBackground(settingsPage(configuration, runners, window, showHome))
 			window.SetContent(settings)
 			window.Resize(settings.MinSize().Add(fyne.NewSize(48, 48)))
-		})
+		}))
 		fyne.Do(func() {
 			window.SetContent(home)
 			window.Resize(fyne.NewSize(1280, 720))
@@ -40,7 +41,7 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 		window.ShowAndRun()
 		return
 	} else {
-		content = setupPage(configuration, runners, window, "Continue", showHome)
+		content = withBackground(setupPage(configuration, runners, window, "Continue", showHome))
 	}
 
 	window.SetContent(content)

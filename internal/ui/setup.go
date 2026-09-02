@@ -42,7 +42,7 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	installationPath := widget.NewEntry()
 	installationPath.SetText(configuration.InstallationPath)
 
-	installationPicker := widget.NewButton("Choose folder", func() {
+	installationPicker := newOutlinedButton("Choose folder", func() {
 		dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err == nil && uri != nil {
 				installationPath.SetText(uri.Path())
@@ -53,7 +53,7 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	prefixPath := widget.NewEntry()
 	prefixPath.SetText(configuration.WinePrefix)
 
-	prefixPicker := widget.NewButton("Choose folder", func() {
+	prefixPicker := newOutlinedButton("Choose folder", func() {
 		dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err == nil && uri != nil {
 				prefixPath.SetText(uri.Path())
@@ -61,11 +61,9 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		}, window)
 	})
 
-	installationRow := container.New(layout.NewFormLayout(),
+	pathsForm := container.New(layout.NewFormLayout(),
 		widget.NewLabel("Game installation"),
 		container.NewBorder(nil, nil, nil, installationPicker, installationPath),
-	)
-	prefixRow := container.New(layout.NewFormLayout(),
 		widget.NewLabel("Wine/Proton prefix"),
 		container.NewBorder(nil, nil, nil, prefixPicker, prefixPath),
 	)
@@ -78,8 +76,8 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	showRevisions.SetChecked(configuration.ShowRevisions)
 
 	status := widget.NewLabel("")
-	var continueButton *widget.Button
-	continueButton = widget.NewButton(actionLabel, func() {
+	var continueButton *outlinedButton
+	continueButton = newOutlinedButton(actionLabel, func() {
 		configuration.InstallationPath = installationPath.Text
 		configuration.WinePrefix = prefixPath.Text
 		configuration.ShowUnstable = showUnstable.Checked
@@ -104,13 +102,12 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 
 	content := container.NewVBox(
 		widget.NewLabel("Choose where the game and its Wine prefix should live. Leave the options as is to use defaults."),
-		installationRow,
-		prefixRow,
-		container.NewBorder(nil, nil, widget.NewLabel("Wine/Proton runner"), nil, runnerSelect),
+		pathsForm,
+		container.NewBorder(nil, nil, widget.NewLabel("Wine/Proton runner"), nil, outlinedInput(runnerSelect)),
 		widget.NewLabel("Version filters"),
-		showUnstable,
-		showTest,
-		showRevisions,
+		withoutInteractionEffect(showUnstable),
+		withoutInteractionEffect(showTest),
+		withoutInteractionEffect(showRevisions),
 		continueButton,
 		status,
 	)

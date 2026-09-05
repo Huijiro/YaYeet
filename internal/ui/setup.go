@@ -74,6 +74,8 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	showTest.SetChecked(configuration.ShowTest)
 	showRevisions := widget.NewCheck("Show revisions", nil)
 	showRevisions.SetChecked(configuration.ShowRevisions)
+	hideWhileGameRunning := widget.NewCheck("Hide launcher when game is open", nil)
+	hideWhileGameRunning.SetChecked(configuration.HideWhileGameRunning)
 
 	status := widget.NewLabel("")
 	var continueButton *outlinedButton
@@ -83,6 +85,7 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		configuration.ShowUnstable = showUnstable.Checked
 		configuration.ShowTest = showTest.Checked
 		configuration.ShowRevisions = showRevisions.Checked
+		configuration.HideWhileGameRunning = hideWhileGameRunning.Checked
 		configurationToSave := *configuration
 		continueButton.Disable()
 		status.SetText("")
@@ -108,6 +111,8 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		withoutInteractionEffect(showUnstable),
 		withoutInteractionEffect(showTest),
 		withoutInteractionEffect(showRevisions),
+		widget.NewLabel("Launcher behavior"),
+		withoutInteractionEffect(hideWhileGameRunning),
 		continueButton,
 		status,
 	)

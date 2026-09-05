@@ -41,14 +41,11 @@ func Launch(ctx context.Context, logger *slog.Logger, installationPath, wineExec
 		return fmt.Errorf("launch VotV.exe: %w", err)
 	}
 
-	go func() {
-		err := command.Wait()
-		if err != nil {
-			logger.Error("game process exited with an error", slog.Any("error", err))
-			return
-		}
-		logger.Info("game process exited")
-	}()
+	if err := command.Wait(); err != nil {
+		logger.Error("game process exited with an error", slog.Any("error", err))
+		return fmt.Errorf("wait for game process: %w", err)
+	}
+	logger.Info("game process exited")
 	return nil
 }
 

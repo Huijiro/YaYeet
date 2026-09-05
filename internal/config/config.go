@@ -20,14 +20,15 @@ const (
 )
 
 type Configuration struct {
-	Version          int    `json:"version"`
-	InstallationPath string `json:"installation_path"`
-	DownloadPath     string `json:"download_path"`
-	WinePrefix       string `json:"wine_prefix"`
-	Runner           Runner `json:"runner"`
-	ShowUnstable     bool   `json:"show_unstable"`
-	ShowTest         bool   `json:"show_test"`
-	ShowRevisions    bool   `json:"show_revisions"`
+	Version              int    `json:"version"`
+	InstallationPath     string `json:"installation_path"`
+	DownloadPath         string `json:"download_path"`
+	WinePrefix           string `json:"wine_prefix"`
+	Runner               Runner `json:"runner"`
+	ShowUnstable         bool   `json:"show_unstable"`
+	ShowTest             bool   `json:"show_test"`
+	ShowRevisions        bool   `json:"show_revisions"`
+	HideWhileGameRunning bool   `json:"hide_while_game_running"`
 }
 
 type Runner struct {

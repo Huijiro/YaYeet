@@ -1,13 +1,28 @@
 #!/bin/sh
 set -eu
 
+if [ "$#" -ne 1 ]; then
+	echo "usage: $0 VERSION" >&2
+	exit 2
+fi
+
+VERSION=${1#v}
+case "$VERSION" in
+	''|*[!0-9A-Za-z.+:~_-]*)
+		echo "invalid AppImage version: $VERSION" >&2
+		exit 2
+		;;
+esac
+
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 APPDIR="$ROOT/dist/YaYeet.AppDir"
 
 rm -rf "$APPDIR" "$ROOT/dist"/*.AppImage
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/applications"
 
-GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o "$APPDIR/usr/bin/yayeet" "$ROOT/cmd/yayeet"
+GOOS=linux GOARCH=amd64 go build -trimpath \
+	-ldflags="-s -w -X github.com/Huijiro/YaYeet/internal/buildinfo.Version=$VERSION -X github.com/Huijiro/YaYeet/internal/buildinfo.InstallMethod=appimage" \
+	-o "$APPDIR/usr/bin/yayeet" "$ROOT/cmd/yayeet"
 cp "$ROOT/packaging/AppRun" "$APPDIR/AppRun"
 cp "$ROOT/packaging/yayeet.desktop" "$APPDIR/usr/share/applications/yayeet.desktop"
 chmod +x "$APPDIR/AppRun" "$APPDIR/usr/bin/yayeet"

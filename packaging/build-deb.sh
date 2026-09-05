@@ -33,7 +33,7 @@ mkdir -p \
 GOOS=linux GOARCH=amd64 go build \
 	-trimpath \
 	-buildmode=pie \
-	-ldflags='-linkmode=external -s -w' \
+	-ldflags="-linkmode=external -s -w -X github.com/Huijiro/YaYeet/internal/buildinfo.Version=$VERSION -X github.com/Huijiro/YaYeet/internal/buildinfo.InstallMethod=deb" \
 	-o "$PACKAGE_ROOT/usr/bin/yayeet" \
 	"$ROOT/cmd/yayeet"
 

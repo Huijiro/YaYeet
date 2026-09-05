@@ -76,7 +76,7 @@ func (thinProgressLayout) MinSize([]fyne.CanvasObject) fyne.Size {
 	return fyne.NewSize(0, theme.Size(theme.SizeNameSeparatorThickness)*2)
 }
 
-func homePage(logger *slog.Logger, configuration *config.Configuration, openSettings func()) fyne.CanvasObject {
+func homePage(logger *slog.Logger, configuration *config.Configuration, window fyne.Window, openSettings func()) fyne.CanvasObject {
 	byLabel := make(map[string]game.VersionOption)
 	patchNotes := widget.NewRichTextFromMarkdown("# Patch notes\n\nLoading...")
 	patchNotes.Wrapping = fyne.TextWrapWord
@@ -199,8 +199,16 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 		}
 		if installedVersion != "" && strings.HasPrefix(selected.Name, installedVersion) {
 			logger.Info("play requested", slog.String("version", selected.Name))
+			hideLauncher := configuration.HideWhileGameRunning
+			if hideLauncher {
+				window.Hide()
+			}
 			go func() {
-				if err := game.Launch(context.Background(), logger, configuration.InstallationPath, configuration.Runner.Executable, configuration.WinePrefix); err != nil {
+				err := game.Launch(context.Background(), logger, configuration.InstallationPath, configuration.Runner.Executable, configuration.WinePrefix)
+				if hideLauncher {
+					fyne.Do(window.Show)
+				}
+				if err != nil {
 					logger.Error("play request failed", slog.Any("error", err))
 				}
 			}()

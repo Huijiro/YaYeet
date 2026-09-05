@@ -9,6 +9,7 @@ A Linux launcher for installing and running [Voices of the Void](https://votv.de
 - Selects the latest stable release by default.
 - Filters unstable, test, and older revision builds.
 - Downloads and installs game files with visible progress.
+- Checks for stable launcher updates in the background and asks before installing AppImage updates.
 - Detects Wine, Proton, Steam, and Lutris runners available on the system.
 
 ## Install
@@ -42,6 +43,12 @@ Run the launcher from source:
 make run
 ```
 
+Run in development mode with launcher update checks disabled:
+
+```sh
+make dev
+```
+
 Build the binary:
 
 ```sh
@@ -51,7 +58,7 @@ make build
 Build an AppImage with `linuxdeploy` available on `PATH`:
 
 ```sh
-make package
+make package VERSION=1.3.2
 ```
 
 Build a Debian package with `dpkg-deb` available on `PATH`:

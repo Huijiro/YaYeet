@@ -47,7 +47,9 @@ build() {
   export CGO_LDFLAGS="${LDFLAGS}"
   export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
 
-  go build -ldflags="-linkmode=external -s -w" -o build/yayeet ./cmd/yayeet
+  go build \
+    -ldflags="-linkmode=external -s -w -X github.com/Huijiro/YaYeet/internal/buildinfo.Version=$pkgver -X github.com/Huijiro/YaYeet/internal/buildinfo.InstallMethod=aur" \
+    -o build/yayeet ./cmd/yayeet
 }
 
 package() {

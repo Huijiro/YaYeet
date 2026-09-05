@@ -44,7 +44,7 @@ jobs:
           chmod +x linuxdeploy
 
       - name: Build AppImage
-        run: PATH="${GITHUB_WORKSPACE}:$PATH" ./packaging/build-appimage.sh
+        run: PATH="${GITHUB_WORKSPACE}:$PATH" ./packaging/build-appimage.sh "${GITHUB_REF_NAME}"
 
       - name: Rename AppImage artifact
         run: mv dist/*.AppImage "dist/YaYeet-${GITHUB_REF_NAME}-x86_64.AppImage"
@@ -52,10 +52,18 @@ jobs:
       - name: Build Debian package
         run: ./packaging/build-deb.sh "${GITHUB_REF_NAME}"
 
+      - name: Generate checksums
+        run: |
+          cd dist
+          for artifact in *.AppImage *.deb; do
+            sha256sum "$artifact" > "$artifact.sha256"
+          done
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/*.AppImage
             dist/*.deb
+            dist/*.sha256
           generate_release_notes: true

@@ -4,6 +4,13 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-09-05
+
+### Added
+
+- Debian package builds to tagged GitHub releases.
+- Arch User Repository packaging metadata.
+
 ## [1.3.1] - 2026-09-02
 
 ### Added
@@ -55,6 +62,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Initial Linux launcher for installing and running Voices of the Void through Wine or Proton.
 
+[1.3.2]: https://github.com/Huijiro/YaYeet/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/Huijiro/YaYeet/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/Huijiro/YaYeet/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Huijiro/YaYeet/compare/v1.1.0...v1.2.0

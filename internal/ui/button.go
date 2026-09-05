@@ -2,6 +2,7 @@ package ui
 
 import (
 	"image/color"
+	"math"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -17,16 +18,24 @@ type outlinedButton struct {
 	widget.DisableableWidget
 	Text         string
 	TextSizeName fyne.ThemeSizeName
+	SizeScale    float32
 	OnTapped     func()
 
 	hovered bool
 	active  bool
+	rainbow bool
 	timer   *time.Timer
 }
 
 func newOutlinedButton(text string, tapped func()) *outlinedButton {
-	button := &outlinedButton{Text: text, TextSizeName: theme.SizeNameText, OnTapped: tapped}
+	button := &outlinedButton{Text: text, TextSizeName: theme.SizeNameText, SizeScale: 1, OnTapped: tapped}
 	button.ExtendBaseWidget(button)
+	return button
+}
+
+func newRainbowOutlinedButton(text string, tapped func()) *outlinedButton {
+	button := newOutlinedButton(text, tapped)
+	button.rainbow = true
 	return button
 }
 
@@ -37,11 +46,20 @@ func (b *outlinedButton) CreateRenderer() fyne.WidgetRenderer {
 
 	label := canvas.NewText(b.Text, b.Theme().Color(theme.ColorNameForeground, fyne.CurrentApp().Settings().ThemeVariant()))
 	label.Alignment = fyne.TextAlignCenter
-	label.TextSize = b.Theme().Size(b.TextSizeName)
+	label.TextSize = b.Theme().Size(b.TextSizeName) * b.SizeScale
 	label.TextStyle = fyne.TextStyle{Bold: true}
 
-	renderer := &outlinedButtonRenderer{button: b, background: background, label: label}
+	renderer := &outlinedButtonRenderer{button: b, background: background, label: label, accent: buttonGreen}
 	renderer.refresh()
+	if b.rainbow {
+		renderer.animation = fyne.NewAnimation(12*time.Second, func(progress float32) {
+			renderer.accent = rainbowColor(progress)
+			renderer.refresh()
+		})
+		renderer.animation.Curve = fyne.AnimationLinear
+		renderer.animation.RepeatCount = fyne.AnimationRepeatForever
+		renderer.animation.Start()
+	}
 	return renderer
 }
 
@@ -91,9 +109,15 @@ type outlinedButtonRenderer struct {
 	button     *outlinedButton
 	background *canvas.Rectangle
 	label      *canvas.Text
+	accent     color.NRGBA
+	animation  *fyne.Animation
 }
 
-func (r *outlinedButtonRenderer) Destroy() {}
+func (r *outlinedButtonRenderer) Destroy() {
+	if r.animation != nil {
+		r.animation.Stop()
+	}
+}
 
 func (r *outlinedButtonRenderer) Layout(size fyne.Size) {
 	borderSize := r.button.Theme().Size(theme.SizeNameInputBorder)
@@ -105,7 +129,7 @@ func (r *outlinedButtonRenderer) Layout(size fyne.Size) {
 }
 
 func (r *outlinedButtonRenderer) MinSize() fyne.Size {
-	padding := r.button.Theme().Size(theme.SizeNameInnerPadding) * 2
+	padding := r.button.Theme().Size(theme.SizeNameInnerPadding) * 2 * r.button.SizeScale
 	return r.label.MinSize().Add(fyne.NewSquareSize(padding))
 }
 
@@ -121,16 +145,40 @@ func (r *outlinedButtonRenderer) Refresh() {
 func (r *outlinedButtonRenderer) refresh() {
 	variant := fyne.CurrentApp().Settings().ThemeVariant()
 	r.label.Text = r.button.Text
-	r.label.TextSize = r.button.Theme().Size(r.button.TextSizeName)
+	r.label.TextSize = r.button.Theme().Size(r.button.TextSizeName) * r.button.SizeScale
 	r.label.Color = r.button.Theme().Color(theme.ColorNameForeground, variant)
+	r.background.StrokeColor = r.accent
 	r.background.FillColor = color.Transparent
 	if r.button.Disabled() {
 		r.label.Color = r.button.Theme().Color(theme.ColorNameDisabled, variant)
 	} else if r.button.active {
-		r.background.FillColor = buttonGreen
+		r.background.FillColor = r.accent
 	} else if r.button.hovered {
-		r.background.FillColor = color.NRGBA{R: buttonGreen.R, G: buttonGreen.G, B: buttonGreen.B, A: 204}
+		r.background.FillColor = color.NRGBA{R: r.accent.R, G: r.accent.G, B: r.accent.B, A: 204}
 	}
 	r.background.Refresh()
 	r.label.Refresh()
+}
+
+func rainbowColor(progress float32) color.NRGBA {
+	hue := float64(progress) * 6
+	sector := int(math.Floor(hue)) % 6
+	fraction := hue - math.Floor(hue)
+	rising := uint8(math.Round(fraction * 255))
+	falling := 255 - rising
+
+	switch sector {
+	case 0:
+		return color.NRGBA{R: 255, G: rising, A: 255}
+	case 1:
+		return color.NRGBA{R: falling, G: 255, A: 255}
+	case 2:
+		return color.NRGBA{G: 255, B: rising, A: 255}
+	case 3:
+		return color.NRGBA{G: falling, B: 255, A: 255}
+	case 4:
+		return color.NRGBA{R: rising, B: 255, A: 255}
+	default:
+		return color.NRGBA{R: 255, B: falling, A: 255}
+	}
 }

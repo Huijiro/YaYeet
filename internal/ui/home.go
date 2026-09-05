@@ -170,6 +170,9 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 			if !configuration.ShowRevisions {
 				label = version.RevisionlessLabel
 			}
+			if !configuration.ShowUnstable {
+				label = strings.TrimSuffix(label, " (stable)")
+			}
 			labels = append(labels, label)
 			versionsByLabel[label] = version
 			if version.Label == latest {
@@ -243,6 +246,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 			}
 		}
 	}
+	header := container.NewVBox(title, announcementArea(logger))
 	socials := container.NewHBox(
 		newOutlinedButton("Discord", openSocial(&url.URL{Scheme: "https", Host: "discord.gg", Path: "/eternitydevgames"})),
 		newOutlinedButton("Patreon", openSocial(&url.URL{Scheme: "https", Host: "www.patreon.com", Path: "/eternitydev/"})),
@@ -265,7 +269,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, openSett
 
 	mainContent := container.New(
 		patchNotesLayout{},
-		container.NewBorder(title, nil, nil, nil, layout.NewSpacer()),
+		container.NewBorder(header, nil, nil, nil, layout.NewSpacer()),
 		patchNotesScroll,
 	)
 	return container.NewBorder(nil, bottom, nil, nil, mainContent)

@@ -46,11 +46,16 @@ jobs:
       - name: Build AppImage
         run: PATH="${GITHUB_WORKSPACE}:$PATH" ./packaging/build-appimage.sh
 
-      - name: Rename artifact
+      - name: Rename AppImage artifact
         run: mv dist/*.AppImage "dist/YaYeet-${GITHUB_REF_NAME}-x86_64.AppImage"
+
+      - name: Build Debian package
+        run: ./packaging/build-deb.sh "${GITHUB_REF_NAME}"
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.AppImage
+          files: |
+            dist/*.AppImage
+            dist/*.deb
           generate_release_notes: true

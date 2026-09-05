@@ -54,6 +54,12 @@ Build an AppImage with `linuxdeploy` available on `PATH`:
 make package
 ```
 
+Build a Debian package with `dpkg-deb` available on `PATH`:
+
+```sh
+make package-deb VERSION=1.3.1
+```
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.

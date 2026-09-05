@@ -1,0 +1,27 @@
+pkgbase = yayeet
+	pkgdesc = Linux launcher for installing and running Voices of the Void through Wine or Proton
+	pkgver = 1.3.1
+	pkgrel = 1
+	url = https://github.com/Huijiro/YaYeet
+	arch = x86_64
+	license = MIT
+	makedepends = go
+	depends = glibc
+	depends = libglvnd
+	depends = libx11
+	depends = libxcursor
+	depends = libxi
+	depends = libxinerama
+	depends = libxkbcommon
+	depends = libxrandr
+	depends = libxxf86vm
+	depends = wayland
+	optdepends = wine: run Voices of the Void using Wine
+	optdepends = steam: provide installed Proton runners
+	optdepends = lutris: provide Lutris-managed runners
+	source = yayeet-1.3.1.tar.gz::https://github.com/Huijiro/YaYeet/archive/refs/tags/v1.3.1.tar.gz
+	source = LICENSE
+	sha256sums = 6c4578cc9c8495e977cb87fc5842700d4631806383829044b7592a66ce159e56
+	sha256sums = 0d8aeacdf684f5108359d275356cc2bf3ab290c98a07632207d3bd8269bc63a8
+
+pkgname = yayeet

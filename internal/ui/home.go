@@ -199,15 +199,21 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 		}
 		if installedVersion != "" && strings.HasPrefix(selected.Name, installedVersion) {
 			logger.Info("play requested", slog.String("version", selected.Name))
+			install.SetText("Launching the game")
+			install.Disable()
 			hideLauncher := configuration.HideWhileGameRunning
 			if hideLauncher {
 				window.Hide()
 			}
 			go func() {
 				err := game.Launch(context.Background(), logger, configuration.InstallationPath, configuration.Runner.Executable, configuration.WinePrefix)
-				if hideLauncher {
-					fyne.Do(window.Show)
-				}
+				fyne.Do(func() {
+					if hideLauncher {
+						window.Show()
+					}
+					updateAction()
+					install.Enable()
+				})
 				if err != nil {
 					logger.Error("play request failed", slog.Any("error", err))
 				}

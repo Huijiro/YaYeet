@@ -4,6 +4,12 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-09-05
+
+### Changed
+
+- Disable the Play button and show `Launching the game` until the game process exits or launch fails.
+
 ## [1.4.0] - 2026-09-05
 
 ### Added
@@ -74,6 +80,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Initial Linux launcher for installing and running Voices of the Void through Wine or Proton.
 
+[1.4.1]: https://github.com/Huijiro/YaYeet/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Huijiro/YaYeet/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/Huijiro/YaYeet/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/Huijiro/YaYeet/compare/v1.3.0...v1.3.1

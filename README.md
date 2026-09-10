@@ -2,6 +2,8 @@
 
 A Linux launcher for installing and running [Voices of the Void](https://votv.dev/) through Wine or Proton.
 
+![YaYeet launcher showing game version controls and patch notes](assets/launcher.png)
+
 ## Features
 
 - Installs selectable game versions from the official manifests.

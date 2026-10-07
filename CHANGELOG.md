@@ -4,6 +4,16 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-07
+
+### Added
+
+- A custom launch arguments setting.
+
+### Removed
+
+- The plushie promotion button from the home screen.
+
 ## [1.4.1] - 2026-09-05
 
 ### Changed

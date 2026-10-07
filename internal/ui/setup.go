@@ -53,6 +53,10 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	prefixPath := widget.NewEntry()
 	prefixPath.SetText(configuration.WinePrefix)
 
+	launchArguments := widget.NewEntry()
+	launchArguments.SetPlaceHolder("-cefdisablegpu")
+	launchArguments.SetText(configuration.LaunchArguments)
+
 	prefixPicker := newOutlinedButton("Choose folder", func() {
 		dialog.ShowFolderOpen(func(uri fyne.ListableURI, err error) {
 			if err == nil && uri != nil {
@@ -86,6 +90,7 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		configuration.ShowTest = showTest.Checked
 		configuration.ShowRevisions = showRevisions.Checked
 		configuration.HideWhileGameRunning = hideWhileGameRunning.Checked
+		configuration.LaunchArguments = launchArguments.Text
 		configurationToSave := *configuration
 		continueButton.Disable()
 		status.SetText("")
@@ -113,6 +118,7 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		withoutInteractionEffect(showRevisions),
 		widget.NewLabel("Launcher behavior"),
 		withoutInteractionEffect(hideWhileGameRunning),
+		container.NewBorder(nil, nil, widget.NewLabel("Custom launch arguments"), nil, outlinedInput(launchArguments)),
 		continueButton,
 		status,
 	)

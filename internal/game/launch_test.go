@@ -26,10 +26,42 @@ func TestLaunchWaitsForGameProcess(t *testing.T) {
 	}
 	t.Setenv("YAYEET_TEST_MARKER", markerPath)
 
-	if err := Launch(context.Background(), slog.Default(), root, runnerPath, filepath.Join(root, "prefix")); err != nil {
+	if err := Launch(context.Background(), slog.Default(), root, runnerPath, filepath.Join(root, "prefix"), ""); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(markerPath); err != nil {
 		t.Fatalf("game process had not finished when Launch returned: %v", err)
+	}
+}
+
+func TestLaunchPassesCustomArgumentsAfterExecutable(t *testing.T) {
+	root := t.TempDir()
+	gameDir := filepath.Join(root, "WindowsNoEditor")
+	if err := os.MkdirAll(gameDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	executablePath := filepath.Join(gameDir, "VotV.exe")
+	if err := os.WriteFile(executablePath, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	argumentsPath := filepath.Join(root, "arguments")
+	runnerPath := filepath.Join(root, "runner")
+	runner := "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$YAYEET_TEST_ARGUMENTS\"\n"
+	if err := os.WriteFile(runnerPath, []byte(runner), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("YAYEET_TEST_ARGUMENTS", argumentsPath)
+
+	if err := Launch(context.Background(), slog.Default(), root, runnerPath, filepath.Join(root, "prefix"), "-cefdisablegpu -windowed"); err != nil {
+		t.Fatal(err)
+	}
+	arguments, err := os.ReadFile(argumentsPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := executablePath + "\n-cefdisablegpu\n-windowed\n"
+	if string(arguments) != want {
+		t.Fatalf("arguments = %q, want %q", arguments, want)
 	}
 }

@@ -29,6 +29,7 @@ type Configuration struct {
 	ShowTest             bool   `json:"show_test"`
 	ShowRevisions        bool   `json:"show_revisions"`
 	HideWhileGameRunning bool   `json:"hide_while_game_running"`
+	LaunchArguments      string `json:"launch_arguments"`
 }
 
 type Runner struct {

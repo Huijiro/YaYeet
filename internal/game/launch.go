@@ -7,20 +7,22 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
-func Launch(ctx context.Context, logger *slog.Logger, installationPath, wineExecutable, winePrefix string) error {
+func Launch(ctx context.Context, logger *slog.Logger, installationPath, wineExecutable, winePrefix, customArguments string) error {
 	executablePath := filepath.Join(installationPath, "WindowsNoEditor", "VotV.exe")
 	if _, err := os.Stat(executablePath); err != nil {
 		return fmt.Errorf("find VotV.exe: %w", err)
 	}
 
 	runnerExecutable := wineExecutable
-	arguments := []string{executablePath}
+	gameArguments := strings.Fields(customArguments)
+	arguments := append([]string{executablePath}, gameArguments...)
 	environment := append(os.Environ(), "WINEPREFIX="+winePrefix)
 	if protonExecutable, steamRoot, ok := protonScript(wineExecutable); ok {
 		runnerExecutable = protonExecutable
-		arguments = []string{"run", executablePath}
+		arguments = append([]string{"run", executablePath}, gameArguments...)
 		environment = append(
 			environment,
 			"STEAM_COMPAT_DATA_PATH="+filepath.Dir(winePrefix),

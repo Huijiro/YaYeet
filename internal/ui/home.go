@@ -206,7 +206,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 				window.Hide()
 			}
 			go func() {
-				err := game.Launch(context.Background(), logger, configuration.InstallationPath, configuration.Runner.Executable, configuration.WinePrefix)
+				err := game.Launch(context.Background(), logger, configuration.InstallationPath, configuration.Runner.Executable, configuration.WinePrefix, configuration.LaunchArguments)
 				fyne.Do(func() {
 					if hideLauncher {
 						window.Show()
@@ -260,7 +260,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 			}
 		}
 	}
-	header := container.NewVBox(title, announcementArea(logger))
+	header := container.NewVBox(title)
 	socials := container.NewHBox(
 		newOutlinedButton("Discord", openSocial(&url.URL{Scheme: "https", Host: "discord.gg", Path: "/eternitydevgames"})),
 		newOutlinedButton("Patreon", openSocial(&url.URL{Scheme: "https", Host: "www.patreon.com", Path: "/eternitydev/"})),

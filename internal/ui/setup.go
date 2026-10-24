@@ -54,7 +54,6 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	prefixPath.SetText(configuration.WinePrefix)
 
 	launchArguments := widget.NewEntry()
-	launchArguments.SetPlaceHolder("-cefdisablegpu")
 	launchArguments.SetText(configuration.LaunchArguments)
 
 	prefixPicker := newOutlinedButton("Choose folder", func() {

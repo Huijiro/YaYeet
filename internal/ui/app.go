@@ -40,6 +40,25 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 		})
 	}
 
+	if len(runners) == 0 {
+		go offerProtonGEInstall(logger, window, func(updated []runner.Runner) {
+			runners = updated
+			if len(runners) == 0 {
+				return
+			}
+			if configuration.Runner.Executable == "" {
+				configuration.SetRunner(config.DefaultRunner(runners))
+			}
+			if configured {
+				showHome()
+				return
+			}
+			content := withBackground(setupPage(configuration, runners, window, "Continue", showHome))
+			window.SetContent(content)
+			window.Resize(content.MinSize().Add(fyne.NewSize(48, 48)))
+		})
+	}
+
 	var content fyne.CanvasObject
 	if configured {
 		showHome()

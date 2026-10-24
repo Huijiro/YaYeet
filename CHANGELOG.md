@@ -4,6 +4,17 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-24
+
+### Added
+
+- A startup prompt to install the latest ProtonGE when no Wine or Proton runners are found.
+- In-app download and install of GE-Proton into Steam's `compatibilitytools.d`, creating the folders if needed.
+
+### Removed
+
+- The placeholder text from the custom launch arguments field.
+
 ## [1.5.0] - 2026-10-07
 
 ### Added
@@ -90,6 +101,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 - Initial Linux launcher for installing and running Voices of the Void through Wine or Proton.
 
+[1.6.0]: https://github.com/Huijiro/YaYeet/compare/v1.5.0...v1.6.0
+[1.5.0]: https://github.com/Huijiro/YaYeet/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/Huijiro/YaYeet/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Huijiro/YaYeet/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/Huijiro/YaYeet/compare/v1.3.1...v1.3.2

@@ -23,9 +23,13 @@ func Launch(ctx context.Context, logger *slog.Logger, installationPath, wineExec
 	if protonExecutable, steamRoot, ok := protonScript(wineExecutable); ok {
 		runnerExecutable = protonExecutable
 		arguments = append([]string{"run", executablePath}, gameArguments...)
+		compatDataPath, err := ensureSteamCompatDataPath(winePrefix)
+		if err != nil {
+			return fmt.Errorf("prepare proton prefix: %w", err)
+		}
 		environment = append(
 			environment,
-			"STEAM_COMPAT_DATA_PATH="+filepath.Dir(winePrefix),
+			"STEAM_COMPAT_DATA_PATH="+compatDataPath,
 			"STEAM_COMPAT_CLIENT_INSTALL_PATH="+steamRoot,
 		)
 	}
@@ -48,6 +52,57 @@ func Launch(ctx context.Context, logger *slog.Logger, installationPath, wineExec
 		return fmt.Errorf("wait for game process: %w", err)
 	}
 	logger.Info("game process exited")
+	return nil
+}
+
+// ensureSteamCompatDataPath returns the STEAM_COMPAT_DATA_PATH for winePrefix.
+// Proton always uses $STEAM_COMPAT_DATA_PATH/pfx, so a configured prefix not named
+// "pfx" gets a sibling .steamcompat directory with a pfx symlink to the real prefix.
+func ensureSteamCompatDataPath(winePrefix string) (string, error) {
+	winePrefix = filepath.Clean(winePrefix)
+	if filepath.Base(winePrefix) == "pfx" {
+		return filepath.Dir(winePrefix), nil
+	}
+
+	compatDir := winePrefix + ".steamcompat"
+	pfxLink := filepath.Join(compatDir, "pfx")
+	if err := os.MkdirAll(compatDir, 0o755); err != nil {
+		return "", fmt.Errorf("create steam compat data path: %w", err)
+	}
+
+	target, err := filepath.Abs(winePrefix)
+	if err != nil {
+		return "", fmt.Errorf("resolve wine prefix: %w", err)
+	}
+	if err := ensureSymlink(pfxLink, target); err != nil {
+		return "", err
+	}
+	return compatDir, nil
+}
+
+func ensureSymlink(link, target string) error {
+	info, err := os.Lstat(link)
+	if err == nil {
+		if info.Mode()&os.ModeSymlink == 0 {
+			return fmt.Errorf("steam compat path %s exists and is not a symlink to %s", link, target)
+		}
+		current, readErr := os.Readlink(link)
+		if readErr != nil {
+			return fmt.Errorf("read steam compat pfx link: %w", readErr)
+		}
+		if filepath.Clean(current) == filepath.Clean(target) {
+			return nil
+		}
+		if err := os.Remove(link); err != nil {
+			return fmt.Errorf("replace steam compat pfx link: %w", err)
+		}
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("stat steam compat pfx link: %w", err)
+	}
+
+	if err := os.Symlink(target, link); err != nil {
+		return fmt.Errorf("link steam compat pfx: %w", err)
+	}
 	return nil
 }
 

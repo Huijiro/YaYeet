@@ -4,6 +4,12 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.2] - 2026-10-30
+
+### Fixed
+
+- Make Proton launches honor a custom Wine prefix path instead of always using the parent directory's `pfx` folder.
+
 ## [1.7.1] - 2026-10-30
 
 ### Fixed

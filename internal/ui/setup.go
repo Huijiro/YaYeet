@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"log/slog"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
@@ -11,7 +13,7 @@ import (
 	"github.com/Huijiro/YaYeet/internal/runner"
 )
 
-func setupPage(configuration *config.Configuration, runners []runner.Runner, window fyne.Window, actionLabel string, onComplete func()) fyne.CanvasObject {
+func setupPage(logger *slog.Logger, configuration *config.Configuration, runners []runner.Runner, window fyne.Window, actionLabel string, onComplete func()) fyne.CanvasObject {
 	runnerOptions := make([]string, 0, len(runners))
 	runnerByOption := make(map[string]runner.Runner, len(runners))
 	for _, discovered := range runners {
@@ -80,6 +82,11 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 	hideWhileGameRunning := widget.NewCheck("Hide launcher when game is open", nil)
 	hideWhileGameRunning.SetChecked(configuration.HideWhileGameRunning)
 
+	localArchiveButton := newOutlinedButton("Install local game archive", func() {
+		configuration.InstallationPath = installationPath.Text
+		promptLocalGameArchiveInstall(logger, installationPath.Text, window)
+	})
+
 	status := widget.NewLabel("")
 	var continueButton *outlinedButton
 	continueButton = newOutlinedButton(actionLabel, func() {
@@ -118,6 +125,9 @@ func setupPage(configuration *config.Configuration, runners []runner.Runner, win
 		widget.NewLabel("Launcher behavior"),
 		withoutInteractionEffect(hideWhileGameRunning),
 		container.NewBorder(nil, nil, widget.NewLabel("Custom launch arguments"), nil, outlinedInput(launchArguments)),
+		widget.NewLabel("Experimental"),
+		widget.NewLabel("Install a full game .7z released outside the normal patcher. Requires 7z on PATH."),
+		localArchiveButton,
 		continueButton,
 		status,
 	)

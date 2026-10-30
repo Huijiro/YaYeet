@@ -27,7 +27,7 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 	showHome = func() {
 		var home fyne.CanvasObject
 		home = withBackground(homePage(logger, configuration, window, func() {
-			settings := withBackground(settingsPage(configuration, runners, window, showHome))
+			settings := withBackground(settingsPage(logger, configuration, runners, window, showHome))
 			window.SetContent(settings)
 			window.Resize(settings.MinSize().Add(fyne.NewSize(48, 48)))
 		}))
@@ -53,7 +53,7 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 				showHome()
 				return
 			}
-			content := withBackground(setupPage(configuration, runners, window, "Continue", showHome))
+			content := withBackground(setupPage(logger, configuration, runners, window, "Continue", showHome))
 			window.SetContent(content)
 			window.Resize(content.MinSize().Add(fyne.NewSize(48, 48)))
 		})
@@ -65,7 +65,7 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 		window.ShowAndRun()
 		return
 	} else {
-		content = withBackground(setupPage(configuration, runners, window, "Continue", showHome))
+		content = withBackground(setupPage(logger, configuration, runners, window, "Continue", showHome))
 	}
 
 	window.SetContent(content)

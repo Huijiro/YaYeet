@@ -4,6 +4,12 @@ Notable changes to YaYeet are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-10-30
+
+### Added
+
+- An Experimental setting to install a local full-game `.7z` archive and label it with a version name.
+
 ## [1.6.0] - 2026-10-24
 
 ### Added

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -116,7 +117,9 @@ func AvailableVersions(ctx context.Context) ([]VersionOption, string, error) {
 			Test:              test,
 		})
 	}
-	sort.Slice(versions, func(i, j int) bool { return versions[i].Label > versions[j].Label })
+	sort.Slice(versions, func(i, j int) bool {
+		return compareVersionNames(versions[i].Name, versions[j].Name) > 0
+	})
 	return versions, selected, nil
 }
 
@@ -186,6 +189,64 @@ func displayVersionName(version string) string {
 		parts[index] = strconv.Itoa(value)
 	}
 	return base + "-" + strings.Join(parts, ".")
+}
+
+type versionSortKey struct {
+	numbers  []int
+	suffix   string
+	revision []int
+}
+
+var versionBasePattern = regexp.MustCompile(`^(\d+(?:\.\d+)*)(.*)$`)
+
+func compareVersionNames(left, right string) int {
+	return versionNameKey(left).compare(versionNameKey(right))
+}
+
+func versionNameKey(version string) versionSortKey {
+	base, revision, ok := revisionParts(version)
+	if !ok {
+		base = version
+	}
+
+	match := versionBasePattern.FindStringSubmatch(base)
+	if match == nil {
+		return versionSortKey{suffix: base, revision: revision}
+	}
+
+	parts := strings.Split(match[1], ".")
+	numbers := make([]int, len(parts))
+	for index, part := range parts {
+		numbers[index], _ = strconv.Atoi(part)
+	}
+	return versionSortKey{numbers: numbers, suffix: match[2], revision: revision}
+}
+
+func (version versionSortKey) compare(other versionSortKey) int {
+	for index := 0; index < len(version.numbers) && index < len(other.numbers); index++ {
+		if version.numbers[index] != other.numbers[index] {
+			if version.numbers[index] < other.numbers[index] {
+				return -1
+			}
+			return 1
+		}
+	}
+	if len(version.numbers) != len(other.numbers) {
+		if len(version.numbers) < len(other.numbers) {
+			return -1
+		}
+		return 1
+	}
+	if cmp := strings.Compare(version.suffix, other.suffix); cmp != 0 {
+		return cmp
+	}
+	if newerRevision(version.revision, other.revision) {
+		return 1
+	}
+	if newerRevision(other.revision, version.revision) {
+		return -1
+	}
+	return 0
 }
 
 func Detect(ctx context.Context, installationPath string) (Status, error) {

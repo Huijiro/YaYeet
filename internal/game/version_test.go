@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sort"
 	"testing"
 )
 
@@ -60,5 +61,31 @@ func TestDisplayVersionNameFormatsManifestRevision(t *testing.T) {
 		if actual := displayVersionName(version); actual != expected {
 			t.Errorf("displayVersionName(%q) = %q, want %q", version, actual, expected)
 		}
+	}
+}
+
+func TestCompareVersionNamesOrdersNumericBases(t *testing.T) {
+	versions := []string{
+		"0.9.0n",
+		"0.9.0_0015_1",
+		"0.10.0_0009",
+		"0.8.2c_0011",
+		"0.8.2_0012",
+		"0.9.0m",
+	}
+	sort.Slice(versions, func(i, j int) bool {
+		return compareVersionNames(versions[i], versions[j]) > 0
+	})
+
+	expected := []string{
+		"0.10.0_0009",
+		"0.9.0n",
+		"0.9.0m",
+		"0.9.0_0015_1",
+		"0.8.2c_0011",
+		"0.8.2_0012",
+	}
+	if !slices.Equal(versions, expected) {
+		t.Fatalf("compareVersionNames order = %v, want %v", versions, expected)
 	}
 }

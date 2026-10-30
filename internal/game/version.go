@@ -210,7 +210,11 @@ func Detect(ctx context.Context, installationPath string) (Status, error) {
 	}
 	installed := currentManifest.FileHashMap[hash]
 	if installed == "" {
-		return Status{ExecutablePath: executablePath, PakPath: pakPath, Hash: hash}, fmt.Errorf("pak hash is not recognized: %s", hash)
+		marked, markerErr := readInstalledVersion(installationPath)
+		if markerErr != nil || marked == "" {
+			return Status{ExecutablePath: executablePath, PakPath: pakPath, Hash: hash}, fmt.Errorf("pak hash is not recognized: %s", hash)
+		}
+		installed = marked
 	}
 
 	return Status{

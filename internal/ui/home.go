@@ -311,15 +311,25 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 		}
 		installationPath := configuration.InstallationPath
 		downloadPath := configuration.DownloadPath
+		winePrefix := configuration.WinePrefix
+		fromVersion := installedVersion
+		toVersion := selected.Name
 		applyInstallProgress(0)
 
 		go func() {
+			if backupPath, err := game.BackupSaveGames(winePrefix, installationPath, fromVersion, toVersion); err != nil {
+				logger.Error("could not backup saves before version switch", slog.String("from", fromVersion), slog.String("to", toVersion), slog.Any("error", err))
+				session.finish(toVersion, err)
+				return
+			} else if backupPath != "" {
+				logger.Info("backed up saves before version switch", slog.String("from", fromVersion), slog.String("to", toVersion), slog.String("backup", backupPath))
+			}
 			err := game.Install(context.Background(), selected.URL, installationPath, downloadPath, func(update game.InstallProgress) {
 				if update.Total > 0 {
 					session.setProgress(float64(update.Current) / float64(update.Total))
 				}
 			})
-			session.finish(selected.Name, err)
+			session.finish(toVersion, err)
 		}()
 	}
 

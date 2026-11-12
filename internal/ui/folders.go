@@ -4,10 +4,11 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
-	"os/user"
 	"path/filepath"
 
 	"fyne.io/fyne/v2"
+
+	"github.com/Huijiro/YaYeet/internal/game"
 )
 
 func openFolder(logger *slog.Logger, path string) {
@@ -29,35 +30,5 @@ func openFolder(logger *slog.Logger, path string) {
 }
 
 func customContentPath(winePrefix string) string {
-	usersPath := filepath.Join(winePrefix, "drive_c", "users")
-	for _, name := range wineUserCandidates(usersPath) {
-		localAppData := filepath.Join(usersPath, name, "AppData", "Local")
-		if info, err := os.Stat(localAppData); err == nil && info.IsDir() {
-			return filepath.Join(localAppData, "VotV", "Assets")
-		}
-	}
-
-	return filepath.Join(usersPath, defaultWineUser(), "AppData", "Local", "VotV", "Assets")
-}
-
-func wineUserCandidates(usersPath string) []string {
-	candidates := []string{defaultWineUser(), "steamuser"}
-	entries, err := os.ReadDir(usersPath)
-	if err != nil {
-		return candidates
-	}
-	for _, entry := range entries {
-		if entry.IsDir() && entry.Name() != "Public" {
-			candidates = append(candidates, entry.Name())
-		}
-	}
-	return candidates
-}
-
-func defaultWineUser() string {
-	current, err := user.Current()
-	if err == nil && current.Username != "" {
-		return current.Username
-	}
-	return "steamuser"
+	return game.CustomContentPath(winePrefix)
 }

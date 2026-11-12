@@ -13,7 +13,7 @@ import (
 	"github.com/Huijiro/YaYeet/internal/game"
 )
 
-func promptLocalGameArchiveInstall(logger *slog.Logger, installationPath string, window fyne.Window) {
+func promptLocalGameArchiveInstall(logger *slog.Logger, installationPath, winePrefix string, window fyne.Window) {
 	installationPath = strings.TrimSpace(installationPath)
 	if installationPath == "" {
 		dialog.ShowError(errString("Set the game installation path before installing a local archive."), window)
@@ -34,14 +34,14 @@ func promptLocalGameArchiveInstall(logger *slog.Logger, installationPath string,
 			dialog.ShowError(errString("Could not resolve the selected archive path."), window)
 			return
 		}
-		askLocalGameArchiveVersion(logger, archivePath, installationPath, window)
+		askLocalGameArchiveVersion(logger, archivePath, installationPath, winePrefix, window)
 	}, window)
 	chooser.SetFilter(storage.NewExtensionFileFilter([]string{".7z"}))
 	chooser.SetConfirmText("Use archive")
 	chooser.Show()
 }
 
-func askLocalGameArchiveVersion(logger *slog.Logger, archivePath, installationPath string, window fyne.Window) {
+func askLocalGameArchiveVersion(logger *slog.Logger, archivePath, installationPath, winePrefix string, window fyne.Window) {
 	versionEntry := widget.NewEntry()
 	versionEntry.SetText(game.VersionHintFromArchiveName(archivePath))
 	versionEntry.SetPlaceHolder("0100_0009")
@@ -60,17 +60,32 @@ func askLocalGameArchiveVersion(logger *slog.Logger, archivePath, installationPa
 			if !confirmed {
 				return
 			}
-			installLocalGameArchive(logger, archivePath, installationPath, strings.TrimSpace(versionEntry.Text), window)
+			installLocalGameArchive(logger, archivePath, installationPath, winePrefix, strings.TrimSpace(versionEntry.Text), window)
 		},
 		window,
 	)
 }
 
-func installLocalGameArchive(logger *slog.Logger, archivePath, installationPath, version string, window fyne.Window) {
+func installLocalGameArchive(logger *slog.Logger, archivePath, installationPath, winePrefix, version string, window fyne.Window) {
 	progress := dialog.NewProgress("Installing local game archive", "Extracting "+version+"...", window)
 	progress.Show()
 
 	go func() {
+		fromVersion := ""
+		if detected, err := game.Detect(context.Background(), installationPath); err == nil {
+			fromVersion = detected.Installed
+		}
+		if backupPath, err := game.BackupSaveGames(winePrefix, installationPath, fromVersion, version); err != nil {
+			fyne.Do(func() {
+				progress.Hide()
+				logger.Error("could not backup saves before local archive install", slog.String("from", fromVersion), slog.String("to", version), slog.Any("error", err))
+				dialog.ShowError(err, window)
+			})
+			return
+		} else if backupPath != "" {
+			logger.Info("backed up saves before local archive install", slog.String("from", fromVersion), slog.String("to", version), slog.String("backup", backupPath))
+		}
+
 		err := game.InstallFromArchive(context.Background(), archivePath, installationPath, version, func(update game.InstallProgress) {
 			fyne.Do(func() {
 				if update.Total > 0 {

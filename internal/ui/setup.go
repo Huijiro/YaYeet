@@ -84,7 +84,8 @@ func setupPage(logger *slog.Logger, configuration *config.Configuration, runners
 
 	localArchiveButton := newOutlinedButton("Install local game archive", func() {
 		configuration.InstallationPath = installationPath.Text
-		promptLocalGameArchiveInstall(logger, installationPath.Text, window)
+		configuration.WinePrefix = prefixPath.Text
+		promptLocalGameArchiveInstall(logger, installationPath.Text, prefixPath.Text, window)
 	})
 
 	status := widget.NewLabel("")

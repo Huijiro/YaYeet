@@ -76,7 +76,7 @@ func (thinProgressLayout) MinSize([]fyne.CanvasObject) fyne.Size {
 	return fyne.NewSize(0, theme.Size(theme.SizeNameSeparatorThickness)*2)
 }
 
-func homePage(logger *slog.Logger, configuration *config.Configuration, window fyne.Window, openSettings func()) fyne.CanvasObject {
+func homePage(logger *slog.Logger, configuration *config.Configuration, window fyne.Window, session *installSession, openSettings func()) fyne.CanvasObject {
 	byLabel := make(map[string]game.VersionOption)
 	patchNotes := widget.NewRichTextFromMarkdown("# Patch notes\n\nLoading...")
 	patchNotes.Wrapping = fyne.TextWrapWord
@@ -100,7 +100,15 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 		openFolder(logger, customContentPath(configuration.WinePrefix))
 	})
 	openCustomContentFolder.Disable()
+	configurationButton := newOutlinedButton("Configuration", openSettings)
+	canEnableInstall := func() bool {
+		return detectionFinished && versionsLoaded && !session.snapshot().Running
+	}
 	updateAction := func() {
+		if session.snapshot().Running {
+			install.SetText("Installing...")
+			return
+		}
 		if !detectionFinished {
 			return
 		}
@@ -110,6 +118,43 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 		} else {
 			install.SetText("Install selected version")
 		}
+	}
+	applyInstallProgress := func(value float64) {
+		progress.SetValue(value)
+		progress.Show()
+		install.SetText("Installing...")
+		install.Disable()
+		versionSelect.Disable()
+	}
+	finishInstallUI := func(version string, err error) {
+		if versionsLoaded {
+			versionSelect.Enable()
+		}
+		progress.Hide()
+		if err != nil {
+			logger.Error("install failed", slog.String("version", version), slog.Any("error", err))
+			updateAction()
+			if canEnableInstall() {
+				install.Enable()
+			}
+			return
+		}
+		progress.SetValue(1)
+		installedVersion = version
+		openGameFolder.Enable()
+		openCustomContentFolder.Enable()
+		updateAction()
+		if canEnableInstall() {
+			install.Enable()
+		}
+	}
+	session.bind(applyInstallProgress, finishInstallUI)
+	if snapshot := session.snapshot(); snapshot.Running {
+		applyInstallProgress(snapshot.Progress)
+	} else if snapshot.CompletedVersion != "" {
+		installedVersion = snapshot.CompletedVersion
+		openGameFolder.Enable()
+		openCustomContentFolder.Enable()
 	}
 	versionSelect.OnChanged = func(label string) {
 		updateAction()
@@ -132,16 +177,19 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 	go func() {
 		detected, err := game.Detect(context.Background(), configuration.InstallationPath)
 		fyne.Do(func() {
-			if err == nil {
-				installedVersion = detected.Installed
-				openGameFolder.Enable()
-				openCustomContentFolder.Enable()
-			}
 			detectionFinished = true
-			updateAction()
-			if versionsLoaded {
-				install.Enable()
+			// Ignore partial-tree Detect results while an install is still writing files.
+			if !session.snapshot().Running {
+				if err == nil {
+					installedVersion = detected.Installed
+					openGameFolder.Enable()
+					openCustomContentFolder.Enable()
+				}
+				if canEnableInstall() {
+					install.Enable()
+				}
 			}
+			updateAction()
 		})
 	}()
 
@@ -183,10 +231,12 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 			byLabel = versionsByLabel
 			versionSelect.Options = labels
 			versionSelect.SetSelected(selectedLabel)
-			versionSelect.Enable()
 			versionsLoaded = true
+			if !session.snapshot().Running {
+				versionSelect.Enable()
+			}
 			updateAction()
-			if detectionFinished {
+			if canEnableInstall() {
 				install.Enable()
 			}
 		})
@@ -221,38 +271,26 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 			return
 		}
 
-		ctx := context.Background()
-		install.Disable()
-		progress.SetValue(0)
-		progress.Show()
+		if !session.tryStart(selected.Name) {
+			return
+		}
+		installationPath := configuration.InstallationPath
+		downloadPath := configuration.DownloadPath
+		applyInstallProgress(0)
 
 		go func() {
-			err := game.Install(ctx, selected.URL, configuration.InstallationPath, configuration.DownloadPath, func(update game.InstallProgress) {
-				fyne.Do(func() {
-					if update.Total > 0 {
-						progress.SetValue(float64(update.Current) / float64(update.Total))
-					}
-				})
-			})
-			fyne.Do(func() {
-				install.Enable()
-				progress.Hide()
-				if err != nil {
-					return
+			err := game.Install(context.Background(), selected.URL, installationPath, downloadPath, func(update game.InstallProgress) {
+				if update.Total > 0 {
+					session.setProgress(float64(update.Current) / float64(update.Total))
 				}
-				progress.SetValue(1)
-				installedVersion = selected.Name
-				openGameFolder.Enable()
-				openCustomContentFolder.Enable()
-				updateAction()
 			})
+			session.finish(selected.Name, err)
 		}()
 	}
 
 	title := canvas.NewText("YaYeet Launcher", theme.Color(theme.ColorNameForeground))
 	title.TextSize = theme.Size(theme.SizeNameHeadingText) * 2
 	title.TextStyle = fyne.TextStyle{Bold: true}
-	configurationButton := newOutlinedButton("Configuration", openSettings)
 	openSocial := func(destination *url.URL) func() {
 		return func() {
 			if err := fyne.CurrentApp().OpenURL(destination); err != nil {

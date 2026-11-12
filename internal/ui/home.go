@@ -76,6 +76,26 @@ func (thinProgressLayout) MinSize([]fyne.CanvasObject) fyne.Size {
 	return fyne.NewSize(0, theme.Size(theme.SizeNameSeparatorThickness)*2)
 }
 
+// preferredVersionLabel picks installed when present in the list, else latest stable.
+func preferredVersionLabel(byLabel map[string]game.VersionOption, installed, latest string) string {
+	if installed != "" {
+		for label, version := range byLabel {
+			if version.Name == installed {
+				return label
+			}
+		}
+		for label, version := range byLabel {
+			if strings.HasPrefix(version.Name, installed) {
+				return label
+			}
+		}
+	}
+	if latest != "" {
+		return latest
+	}
+	return ""
+}
+
 func homePage(logger *slog.Logger, configuration *config.Configuration, window fyne.Window, session *installSession, openSettings func()) fyne.CanvasObject {
 	byLabel := make(map[string]game.VersionOption)
 	patchNotes := widget.NewRichTextFromMarkdown("# Patch notes\n\nLoading...")
@@ -87,8 +107,10 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 	progress.TextFormatter = func() string { return "" }
 	progress.Hide()
 	installedVersion := ""
+	latestLabel := ""
 	versionsLoaded := false
 	detectionFinished := false
+	defaultSelectionApplied := false
 	install := newOutlinedButton("Play", nil)
 	install.TextSizeName = theme.SizeNameHeadingText
 	install.Disable()
@@ -103,6 +125,17 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 	configurationButton := newOutlinedButton("Configuration", openSettings)
 	canEnableInstall := func() bool {
 		return detectionFinished && versionsLoaded && !session.snapshot().Running
+	}
+	applyDefaultSelection := func() {
+		if defaultSelectionApplied || !versionsLoaded || !detectionFinished {
+			return
+		}
+		defaultSelectionApplied = true
+		selected := preferredVersionLabel(byLabel, installedVersion, latestLabel)
+		if selected == "" {
+			return
+		}
+		versionSelect.SetSelected(selected)
 	}
 	updateAction := func() {
 		if session.snapshot().Running {
@@ -189,6 +222,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 					install.Enable()
 				}
 			}
+			applyDefaultSelection()
 			updateAction()
 		})
 	}()
@@ -206,7 +240,7 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 
 		labels := make([]string, 0, len(versions))
 		versionsByLabel := make(map[string]game.VersionOption, len(versions))
-		selectedLabel := latest
+		fallbackLatest := latest
 		for _, version := range versions {
 			if version.Unstable && !configuration.ShowUnstable {
 				continue
@@ -224,14 +258,15 @@ func homePage(logger *slog.Logger, configuration *config.Configuration, window f
 			labels = append(labels, label)
 			versionsByLabel[label] = version
 			if version.Label == latest {
-				selectedLabel = label
+				fallbackLatest = label
 			}
 		}
 		fyne.Do(func() {
 			byLabel = versionsByLabel
 			versionSelect.Options = labels
-			versionSelect.SetSelected(selectedLabel)
+			latestLabel = fallbackLatest
 			versionsLoaded = true
+			applyDefaultSelection()
 			if !session.snapshot().Running {
 				versionSelect.Enable()
 			}

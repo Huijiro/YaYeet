@@ -23,10 +23,12 @@ func Run(logger *slog.Logger, configuration *config.Configuration, runners []run
 	}
 
 	var updateCheck sync.Once
+	install := &installSession{}
 	var showHome func()
 	showHome = func() {
 		var home fyne.CanvasObject
-		home = withBackground(homePage(logger, configuration, window, func() {
+		home = withBackground(homePage(logger, configuration, window, install, func() {
+			install.unbind()
 			settings := withBackground(settingsPage(logger, configuration, runners, window, showHome))
 			window.SetContent(settings)
 			window.Resize(settings.MinSize().Add(fyne.NewSize(48, 48)))
